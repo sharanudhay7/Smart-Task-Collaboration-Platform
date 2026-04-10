@@ -70,20 +70,6 @@ public class GlobalExceptionHandler {
                 .body(error);
     }
 
-    // Fallback exception
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<GlobalErrorResponse> handleGenericException(Exception ex) {
-        log.error("Unexpected system error", ex);
-        GlobalErrorResponse error = GlobalErrorResponse.builder()
-                .errorCode("INTERNAL_SERVER_ERROR")
-                .message("Something went wrong")
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .timestamp(LocalDateTime.now())
-                .build();
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(error);
-    }
 
 
 
@@ -114,4 +100,18 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
-}
+
+    // Fallback exception
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<GlobalErrorResponse> handleGenericException(Exception ex) {
+        log.error("Unexpected system error", ex);
+        GlobalErrorResponse error = GlobalErrorResponse.builder()
+                .errorCode("INTERNAL_SERVER_ERROR")
+                .message("Something went wrong")
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(error);
+    }}

@@ -46,7 +46,6 @@ public class AuthController {
     public String register(@RequestBody User user) {
         log.info("Register request received for user={}", user.getUsername());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRole(Role.USER);
         userRepository.save(user);
 
         log.info("User registered successfully: {}", user.getUsername());

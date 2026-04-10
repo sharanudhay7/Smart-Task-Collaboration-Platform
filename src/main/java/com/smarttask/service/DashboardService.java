@@ -2,6 +2,7 @@ package com.smarttask.service;
 
 import com.smarttask.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -17,6 +18,7 @@ public class DashboardService {
 
     private final TaskRepository taskRepository;
 
+    @Cacheable(value = "dashboard")
     public Map<String,Object> dashboard() {
 
         Map<String,Object> response = new HashMap<>();

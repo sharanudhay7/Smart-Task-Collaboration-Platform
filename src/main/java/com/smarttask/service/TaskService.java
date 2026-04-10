@@ -11,6 +11,8 @@ import com.smarttask.repository.TaskRepository;
 import com.smarttask.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +30,7 @@ public class TaskService {
     private final AuditRepository auditRepository;
 
     // ================= CREATE TASK =================
+    @CacheEvict(value = "tasks", allEntries = true)
     public Task createTask(Task task, Long userId) {
 
         log.info("Creating task for userId={}", userId);
@@ -53,6 +56,8 @@ public class TaskService {
     }
 
     // ================= UPDATE TASK =================
+    // WRITE OPERATION → INVALIDATE CACHE
+    @CacheEvict(value = "tasks", allEntries = true)
     public TaskResponse updateTask(Long id, Task request) {
 
         log.info("Updating task with id={}", id);
@@ -93,6 +98,7 @@ public class TaskService {
     }
 
     // ================= GET ALL TASKS =================
+    @Cacheable(value = "tasks")
     public List<TaskResponse> getAllTasks() {
 
         log.info("Fetching all tasks");
@@ -117,6 +123,47 @@ public class TaskService {
         logEntity.setChangedAt(LocalDateTime.now());
 
         auditRepository.save(logEntity);
+    }
+
+//Task Assign
+    @CacheEvict(value = "tasks", allEntries = true)
+    public TaskResponse assignTask(Long taskId, Long userId) {
+
+        log.info("Assigning task {} to user {}", taskId, userId);
+
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new UserNotFoundException("User not found"));
+
+        task.setAssignedTo(user);
+        //task.setStatus(Status.IN_PROGRESS);
+
+        taskRepository.save(task);
+
+        saveAudit("Task Assigned", user.getUsername());
+
+        return mapToResponse(task);
+    }
+
+    //=============CompleteTask=====
+    @CacheEvict(value = "tasks", allEntries = true)
+    public TaskResponse completeTask(Long taskId) {
+
+        log.info("Completing task {}", taskId);
+
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+
+        task.setStatus(Status.DONE);
+
+        taskRepository.save(task);
+
+        saveAudit("Task Completed", "SYSTEM");
+
+        return mapToResponse(task);
     }
 
     // ================= MAPPER =================

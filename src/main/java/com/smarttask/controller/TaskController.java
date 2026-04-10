@@ -50,4 +50,21 @@ public class TaskController {
         log.info("Task updated successfully id={}", id);
         return ResponseEntity.ok(updatedTask);
     }
+
+    // ================= ASSIGN TASK =================
+    @PutMapping("/{taskId}/assign/{userId}")
+    public TaskResponse assignTask(
+            @PathVariable Long taskId,
+            @PathVariable Long userId) {
+        log.info("Request received to assign task id={}", userId);
+        return taskService.assignTask(taskId, userId);
+    }
+
+    // ================= COMPLETE TASK =================
+    @PutMapping("/{taskId}/complete")
+    public TaskResponse completeTask(
+            @PathVariable Long taskId) {
+        log.info("Request received to completeTask task id={}", taskId);
+        return taskService.completeTask(taskId);
+    }
 }
