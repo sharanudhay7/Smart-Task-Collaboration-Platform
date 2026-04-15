@@ -1,12 +1,16 @@
 package com.smarttask.controller;
 
+import com.smarttask.dto.AuthResponse;
+import com.smarttask.dto.UserDto;
 import com.smarttask.entity.User;
 import com.smarttask.enums.Role;
 import com.smarttask.repository.UserRepository;
 import com.smarttask.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,21 +29,54 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
-
     @PostMapping("/login")
-    public String login(@RequestBody User request) {
-        log.info("Login attempt for user={}", request.getUsername());
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
-        );
+    public ResponseEntity<?> login(@RequestBody User request) {
 
-        String token = jwtService.generateToken(request.getUsername());
-        log.info("Login successful for user={}", request.getUsername());
-        return token;
+        log.info("Login attempt for user={}", request.getEmail());
+
+        try {
+            // ✅ Authenticate
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+
+            // ✅ Fetch user from DB
+            User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // ✅ Generate token
+            String token = jwtService.generateToken(user.getEmail());
+
+            log.info("Login successful for user={}", user.getEmail());
+
+            // ✅ Prepare response DTO
+            UserDto userDto = new UserDto(
+                    user.getId(),
+                    user.getEmail(),
+                    user.getRole().name()
+            );
+
+            return ResponseEntity.ok(new AuthResponse(token, userDto));
+
+        } catch (BadCredentialsException ex) {
+            log.error("Invalid credentials for user={}", request.getEmail());
+            return ResponseEntity
+                    .status(401)
+                    .body("Invalid email or password");
+
+        } catch (Exception ex) {
+            log.error("Login error for user={}", request.getEmail(), ex);
+            return ResponseEntity
+                    .status(500)
+                    .body("Something went wrong. Please try again.");
+        }
     }
+
+
+
 
 //Testing purpose
     @PostMapping("/register")

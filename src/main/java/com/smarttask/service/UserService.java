@@ -1,5 +1,6 @@
 package com.smarttask.service;
 
+import com.smarttask.dto.UserDto;
 import com.smarttask.dto.UserRequest;
 import com.smarttask.entity.User;
 import com.smarttask.repository.UserRepository;
@@ -7,6 +8,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 //import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
@@ -31,5 +34,16 @@ public class UserService {
                 user.getId(),
                 user.getEmail());
         return userRepository.save(user);
+    }
+
+    public List<UserDto> getAllUsers() {
+        return userRepository.findAll()
+                .stream()
+                .map(user -> new UserDto(
+                        user.getId(),
+                        user.getUsername(),
+                        user.getEmail()
+                ))
+                .toList();
     }
 }
