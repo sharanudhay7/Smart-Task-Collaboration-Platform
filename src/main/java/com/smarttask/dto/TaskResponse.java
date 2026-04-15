@@ -13,4 +13,5 @@ public class TaskResponse {
     private String description;
     private String status;
     private String priority;
+    private UserDto assignedUser;
 }

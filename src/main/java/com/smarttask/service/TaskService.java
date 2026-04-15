@@ -1,6 +1,7 @@
 package com.smarttask.service;
 
 import com.smarttask.dto.TaskResponse;
+import com.smarttask.dto.UserDto;
 import com.smarttask.entity.AuditLog;
 import com.smarttask.entity.Task;
 import com.smarttask.entity.User;
@@ -30,7 +31,7 @@ public class TaskService {
     private final AuditRepository auditRepository;
 
     // ================= CREATE TASK =================
-    @CacheEvict(value = "tasks", allEntries = true)
+  //  @CacheEvict(value = "tasks", allEntries = true)
     public Task createTask(Task task, Long userId) {
 
         log.info("Creating task for userId={}", userId);
@@ -57,7 +58,7 @@ public class TaskService {
 
     // ================= UPDATE TASK =================
     // WRITE OPERATION → INVALIDATE CACHE
-    @CacheEvict(value = "tasks", allEntries = true)
+  //  @CacheEvict(value = "tasks", allEntries = true)
     public TaskResponse updateTask(Long id, Task request) {
 
         log.info("Updating task with id={}", id);
@@ -98,7 +99,7 @@ public class TaskService {
     }
 
     // ================= GET ALL TASKS =================
-    @Cacheable(value = "tasks")
+    //@Cacheable(value = "tasks")
     public List<TaskResponse> getAllTasks() {
 
         log.info("Fetching all tasks");
@@ -126,7 +127,7 @@ public class TaskService {
     }
 
 //Task Assign
-    @CacheEvict(value = "tasks", allEntries = true)
+    //@CacheEvict(value = "tasks", allEntries = true)
     public TaskResponse assignTask(Long taskId, Long userId) {
 
         log.info("Assigning task {} to user {}", taskId, userId);
@@ -149,7 +150,7 @@ public class TaskService {
     }
 
     //=============CompleteTask=====
-    @CacheEvict(value = "tasks", allEntries = true)
+    //@CacheEvict(value = "tasks", allEntries = true)
     public TaskResponse completeTask(Long taskId) {
 
         log.info("Completing task {}", taskId);
@@ -171,12 +172,24 @@ public class TaskService {
 
         log.debug("Mapping task to response. taskId={}", task.getId());
 
+        UserDto assignedUser = null;
+
+        if (task.getAssignedTo() != null) {
+            assignedUser = new UserDto(
+                    task.getAssignedTo().getId(),
+                    task.getAssignedTo().getEmail(),
+                    task.getAssignedTo().getRole().name(),
+                    task.getAssignedTo().getUsername()
+            );
+        }
+
         return TaskResponse.builder()
                 .id(task.getId())
                 .title(task.getTitle())
                 .description(task.getDescription())
                 .status(task.getStatus().name())
                 .priority(task.getPriority().name())
+                .assignedUser(assignedUser) // ✅ ADD THIS
                 .build();
     }
 }

@@ -13,7 +13,4 @@ public class UserDto {
     private String role;
     private String userName;
 
-
-    public UserDto(Long id, String username, String email) {
-    }
 }
