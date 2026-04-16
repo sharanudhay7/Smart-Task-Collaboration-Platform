@@ -5,6 +5,7 @@ import com.smarttask.dto.UserDto;
 import com.smarttask.entity.AuditLog;
 import com.smarttask.entity.Task;
 import com.smarttask.entity.User;
+import com.smarttask.enums.Role;
 import com.smarttask.enums.Status;
 import com.smarttask.exception.UserNotFoundException;
 import com.smarttask.repository.AuditRepository;
@@ -14,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,16 +35,24 @@ public class TaskService {
 
     // ================= CREATE TASK =================
   //  @CacheEvict(value = "tasks", allEntries = true)
-    public Task createTask(Task task, Long userId) {
+    public TaskResponse createTask(Task task) {
 
-        log.info("Creating task for userId={}", userId);
+        log.info("Creating task");
 
-        User user = userRepository.findById(userId)
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> {
-                    log.error("User not found with id={}", userId);
+                    log.error("User not found with email={}", email);
                     return new UserNotFoundException(
-                            "User not found with id: " + userId);
+                            "User not found with email: " + email);
                 });
+
+        if (!(user.getRole() == Role.ADMIN ||
+                user.getRole() == Role.MANAGER)) {
+            throw new RuntimeException("Not authorized to create task");
+        }
 
         task.setAssignedTo(user);
         task.setStatus(Status.OPEN);
@@ -53,9 +64,8 @@ public class TaskService {
 
         saveAudit("Task Created", user.getUsername());
 
-        return saved;
+        return mapToResponse(saved);
     }
-
     // ================= UPDATE TASK =================
     // WRITE OPERATION → INVALIDATE CACHE
   //  @CacheEvict(value = "tasks", allEntries = true)
@@ -64,10 +74,19 @@ public class TaskService {
         log.info("Updating task with id={}", id);
 
         Task task = taskRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Task not found with id={}", id);
-                    return new RuntimeException("Task not found");
-                });
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+
+        User currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Only ADMIN / MANAGER
+        if (!(currentUser.getRole() == Role.ADMIN ||
+                currentUser.getRole() == Role.MANAGER)) {
+            throw new RuntimeException("Not authorized to update task");
+        }
 
         if (request.getTitle() != null) {
             log.debug("Updating title for taskId={}", id);
@@ -91,7 +110,7 @@ public class TaskService {
 
         taskRepository.save(task);
 
-        saveAudit("Task Updated", "SYSTEM");
+        saveAudit("Task Updated", currentUser.getUsername());
 
         log.info("Task updated successfully. taskId={}", id);
 
@@ -103,11 +122,21 @@ public class TaskService {
     public List<TaskResponse> getAllTasks() {
 
         log.info("Fetching all tasks");
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
 
-        List<Task> tasks = taskRepository.findAll();
+        User currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        log.info("Total tasks fetched={}", tasks.size());
+        List<Task> tasks;
 
+        if (currentUser.getRole() == Role.USER){
+            //  Only assigned tasks
+            tasks = taskRepository.findByAssignedToId(currentUser.getId());
+        } else {
+            // ADMIN / MANAGER
+            tasks = taskRepository.findAll();
+        }
         return tasks.stream()
                 .map(this::mapToResponse)
                 .toList();
@@ -131,6 +160,18 @@ public class TaskService {
     public TaskResponse assignTask(Long taskId, Long userId) {
 
         log.info("Assigning task {} to user {}", taskId, userId);
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+
+        User currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        //  Only ADMIN or MANAGER
+        if (!(currentUser.getRole().name().equals("ADMIN") ||
+                currentUser.getRole().name().equals("MANAGER"))) {
+            throw new RuntimeException("Not authorized to assign task");
+        }
 
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
@@ -157,6 +198,18 @@ public class TaskService {
 
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+
+        User currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        //  Only assigned user or ADMIN
+        if (!(task.getAssignedTo().getId().equals(currentUser.getId()) ||
+                currentUser.getRole() == Role.ADMIN)) {
+            throw new RuntimeException("Not authorized to complete this task");
+        }
 
         task.setStatus(Status.DONE);
 

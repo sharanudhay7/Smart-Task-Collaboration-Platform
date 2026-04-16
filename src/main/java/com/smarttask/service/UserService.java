@@ -8,6 +8,8 @@ import com.smarttask.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +24,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public User register(UserRequest request) {
+    public UserDto register(UserRequest request) {
         log.info("User registration started for email: {}", request.getEmail());
         // Encode password
         //user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -31,16 +33,28 @@ public class UserService {
         User user = new User();
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(Role.valueOf(request.getRole()));
-
+        userRepository.save(user);
         log.info("User registered successfully. UserId: {}, Email: {}",
                 user.getId(),
                 user.getEmail());
-        return userRepository.save(user);
+
+        return mapToResponse(user);
     }
 
     public List<UserDto> getAllUsers() {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+
+        User currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        //Extra safety check
+        if (!(currentUser.getRole() == Role.ADMIN || currentUser.getRole() == Role.MANAGER)) {
+            throw new RuntimeException("Not authorized to view users");
+        }
         return userRepository.findAll()
                 .stream()
                 .map(user -> new UserDto(
@@ -51,4 +65,13 @@ public class UserService {
                 ))
                 .toList();
     }
-}
+
+
+    private UserDto mapToResponse(User user) {
+        UserDto dto = new UserDto();
+        dto.setId(user.getId());
+        dto.setUserName(user.getUsername());
+        dto.setEmail(user.getEmail());
+        dto.setRole(user.getRole().name());
+        return dto;
+    }}

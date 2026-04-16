@@ -30,7 +30,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         log.info("User authenticated successfully: {}", email);
 
         return org.springframework.security.core.userdetails.User
-                .withUsername(user.getUsername())
+                .withUsername(user.getEmail())
                 .password(user.getPassword())
                 .roles(user.getRole().name())
                 .build();

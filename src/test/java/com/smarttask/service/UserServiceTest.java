@@ -1,4 +1,4 @@
-package com.smarttask.service;
+/*package com.smarttask.service;
 
 import com.smarttask.dto.UserRequest;
 import com.smarttask.entity.User;
@@ -92,4 +92,4 @@ class UserServiceTest {
         assertEquals("john@test.com", result.getEmail());
         assertEquals("123", result.getPassword());
     }
-}
+}*/

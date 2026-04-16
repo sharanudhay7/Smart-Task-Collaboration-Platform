@@ -6,6 +6,7 @@ import com.smarttask.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class TaskController {
     private final TaskService taskService;
 
     // ================= GET ALL TASKS =================
+    @PreAuthorize("isAuthenticated()") //  Any logged-in user
     @GetMapping
     public ResponseEntity<List<TaskResponse>> getAllTasks() {
         log.info("Received request to fetch all tasks");
@@ -28,18 +30,19 @@ public class TaskController {
     }
 
     // ================= CREATE TASK =================
+    @PreAuthorize("hasRole('ADMIN')") //  Only ADMIN
     @PostMapping
-    public ResponseEntity<Task> create(
-            @RequestBody Task task,
-            @RequestParam Long userId) {
-        log.info("Request received to create task for userId={}", userId);
+    public ResponseEntity<TaskResponse> create(
+            @RequestBody Task task) {
+        log.info("Request received to create task ");
         log.debug("Task payload: {}", task);
-        Task createdTask = taskService.createTask(task, userId);
+        TaskResponse createdTask = taskService.createTask(task);
         log.info("Task created successfully with id={}", createdTask.getId());
         return ResponseEntity.ok(createdTask);
     }
 
     // ================= UPDATE TASK =================
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<TaskResponse> update(
             @PathVariable Long id,
@@ -52,6 +55,7 @@ public class TaskController {
     }
 
     // ================= ASSIGN TASK =================
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{taskId}/assign/{userId}")
     public TaskResponse assignTask(
             @PathVariable Long taskId,
@@ -61,6 +65,7 @@ public class TaskController {
     }
 
     // ================= COMPLETE TASK =================
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @PutMapping("/{taskId}/complete")
     public TaskResponse completeTask(
             @PathVariable Long taskId) {

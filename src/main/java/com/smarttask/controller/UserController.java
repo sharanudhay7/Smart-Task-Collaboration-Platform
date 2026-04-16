@@ -22,14 +22,17 @@ public class UserController {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
 
+
     @PreAuthorize("hasRole('ADMIN')")
    @PostMapping
-    public User register(@Valid @RequestBody UserRequest user) {
+    public UserDto register(@Valid @RequestBody UserRequest user) {
         log.debug("Received request to register user: {}", user.getUsername());
-        User savedUser = userService.register(user);
+        UserDto savedUser = userService.register(user);
         log.debug("User registered successfully with id: {}", savedUser.getId());
         return savedUser;
     }
+
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
         @GetMapping
         public List<UserDto> getAllUsers() {
             return userService.getAllUsers();

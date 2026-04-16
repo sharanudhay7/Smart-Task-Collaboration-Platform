@@ -18,4 +18,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     @Query("SELECT COUNT(t) FROM Task t WHERE t.dueDate < CURRENT_DATE")
     long countOverdueTasks();
+
+    List<Task> findByAssignedToId(Long id);
 }

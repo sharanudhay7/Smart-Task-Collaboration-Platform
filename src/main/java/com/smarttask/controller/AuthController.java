@@ -35,7 +35,7 @@ public class AuthController {
         log.info("Login attempt for user={}", request.getEmail());
 
         try {
-            // ✅ Authenticate
+            //  Authenticate
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             request.getEmail(),
@@ -43,16 +43,16 @@ public class AuthController {
                     )
             );
 
-            // ✅ Fetch user from DB
+            //  Fetch user from DB
             User user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
-            // ✅ Generate token
+            //  Generate token
             String token = jwtService.generateToken(user.getEmail());
 
             log.info("Login successful for user={}", user.getEmail());
 
-            // ✅ Prepare response DTO
+            //  Prepare response DTO
             UserDto userDto = new UserDto(
                     user.getId(),
                     user.getEmail(),
