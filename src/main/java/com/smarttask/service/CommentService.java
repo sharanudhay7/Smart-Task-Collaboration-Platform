@@ -8,6 +8,7 @@ import com.smarttask.enums.Role;
 import com.smarttask.repository.CommentRepository;
 import com.smarttask.repository.TaskRepository;
 import com.smarttask.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class CommentService {
 
     private final CommentRepository commentRepository;
