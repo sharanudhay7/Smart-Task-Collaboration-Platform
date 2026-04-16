@@ -1,0 +1,386 @@
+{
+  "info": {
+    "_postman_id": "d2f022bf-b835-411d-ac08-e22680afb3ed",
+    "name": "SmartTask",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "6994916"
+  },
+  "item": [
+    {
+      "name": "createUser",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"username\": \"saranya\",\r\n  \"email\": \"saranya@tcs.com\",\r\n  \"password\": \"Test@123\",\r\n  \"role\": \"USER\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/users",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Createtask",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJyYWpAdGNzLmNvbSIsImlhdCI6MTc3NjMzMDU0NCwiZXhwIjoxNzc2MzMxNDQ0fQ.N63qCnFCKlemfmQi8NhxSiZ8vMDPqRupoREjfzTmRzUajiqtN9FY85pzDmyZJbTe",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"title\":\"SmartTask\",\"description\":\"TestSmartTask\",\"status\":\"OPEN\",\"priority\":\"MEDIUM\",\"dueDate\":\"2026-04-23\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/tasks",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "tasks"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "updatetask",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJyYWpAdGNzLmNvbSIsImlhdCI6MTc3NjMzMDU0NCwiZXhwIjoxNzc2MzMxNDQ0fQ.N63qCnFCKlemfmQi8NhxSiZ8vMDPqRupoREjfzTmRzUajiqtN9FY85pzDmyZJbTe",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"title\":\"SmartTask-Spring\",\"description\":\"TestSmartTask\",\"status\":\"OPEN\",\"priority\":\"MEDIUM\",\"dueDate\":\"2026-04-23\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/tasks/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "tasks",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetTask",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/tasks",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "tasks"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "AuthLogin",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"username\": \"Saranya\",\r\n  \"password\": \"1234\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/auth/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "AuthLogin-registerTest",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"username\": \"Saranya\",\r\n  \"password\": \"1234\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/auth/register",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Assignee",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJyYWoiLCJpYXQiOjE3NzU4MzAwODQsImV4cCI6MTc3NTgzMDk4NH0.de7WhtcFM9R4nfew0ykxTAKLPNwT8qZbd5TwyqAku9C_pNWYHRuD7DRvyXXo7PXl",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": ""
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/1/assign/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "1",
+            "assign",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetUsers",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJyYWpAdGNzLmNvbSIsImlhdCI6MTc3NTkxOTQwOSwiZXhwIjoxNzc1OTIwMzA5fQ.upVLNIDBCojPaNoa7mopxJMMQG2ivVslv6RVwi0oRLnU_PtCCzYLbmStdb2sSLfo",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/users",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "complete",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJyYWpAdGNzLmNvbSIsImlhdCI6MTc3NjMzMDU0NCwiZXhwIjoxNzc2MzMxNDQ0fQ.N63qCnFCKlemfmQi8NhxSiZ8vMDPqRupoREjfzTmRzUajiqtN9FY85pzDmyZJbTe",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/tasks/1/complete",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "tasks",
+            "1",
+            "complete"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "CommentRequest",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJyYWpAdGNzLmNvbSIsImlhdCI6MTc3NjMzNDEzOSwiZXhwIjoxNzc2MzM1MDM5fQ.sSIdenMywZseN2ws1f6zGct3mFEwEhW062cra96kRmKpVRGcCHaOiIXE7wGpMGgn",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"text\": \"This task needs review\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/tasks/1/comments",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "tasks",
+            "1",
+            "comments"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "dashboard",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJyYWpAdGNzLmNvbSIsImlhdCI6MTc3NjMzNDEzOSwiZXhwIjoxNzc2MzM1MDM5fQ.sSIdenMywZseN2ws1f6zGct3mFEwEhW062cra96kRmKpVRGcCHaOiIXE7wGpMGgn",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"username\": \"Saranya\",\r\n  \"password\": \"1234\"\r\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/dashboard",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "dashboard"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
