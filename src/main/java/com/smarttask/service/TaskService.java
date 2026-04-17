@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Transactional
@@ -67,7 +68,14 @@ public class TaskService {
         log.info("Task created successfully. TaskId={}, AssignedTo={}",
                 saved.getId(), user.getUsername());
 
-        saveAudit("Task Created", user.getUsername());
+       saveAudit(
+               saved,          // Task
+               user,           // User
+               "CREATE",       // Action
+               null,           // fieldName
+               null,           // oldValue
+               null            // newValue
+       );
 
         return mapToResponse(saved);
     }
@@ -93,6 +101,12 @@ public class TaskService {
             throw new RuntimeException("Not authorized to update task");
         }
 
+        //Capture OLD values
+        String oldTitle = task.getTitle();
+        String oldDescription = task.getDescription();
+        String oldStatus = task.getStatus() != null ? task.getStatus().name() : null;
+        String oldPriority = task.getPriority() != null ? task.getPriority().name() : null;
+
         if (request.getTitle() != null) {
             log.debug("Updating title for taskId={}", id);
             task.setTitle(request.getTitle());
@@ -113,14 +127,31 @@ public class TaskService {
             task.setPriority(request.getPriority());
         }
 
-        taskRepository.save(task);
-
-        saveAudit("Task Updated", currentUser.getUsername());
+        Task updatedTask = taskRepository.save(task);
 
         log.info("Task updated successfully. taskId={}", id);
 
-        return mapToResponse(task);
+        // Compare & Audit
+
+        auditIfChanged(updatedTask, currentUser, "title",
+                oldTitle, updatedTask.getTitle());
+
+        auditIfChanged(updatedTask, currentUser, "description",
+                oldDescription, updatedTask.getDescription());
+
+        auditIfChanged(updatedTask, currentUser, "status",
+                oldStatus,
+                updatedTask.getStatus() != null ? updatedTask.getStatus().name() : null);
+
+        auditIfChanged(updatedTask, currentUser, "priority",
+                oldPriority,
+                updatedTask.getPriority() != null ? updatedTask.getPriority().name() : null);
+
+        log.info("Task updated successfully. taskId={}", id);
+
+        return mapToResponse(updatedTask);
     }
+
 
     // ================= GET ALL TASKS =================
     @Cacheable(value = "tasks")
@@ -157,16 +188,28 @@ public class TaskService {
     }
 
     // ================= AUDIT =================
-    private void saveAudit(String action, String user) {
+    private void saveAudit(Task task,
+                           User user,
+                           String action,
+                           String fieldName,
+                           String oldValue,
+                           String newValue) {
 
-        log.debug("Saving audit log. Action={}, User={}", action, user);
+        log.debug("Saving audit log. Action={}, TaskId={}, UserId={}",
+                action,
+                task != null ? task.getId() : null,
+                user != null ? user.getId() : null);
 
-        AuditLog logEntity = new AuditLog();
-        logEntity.setAction(action);
-        logEntity.setChangedBy(user);
-        logEntity.setChangedAt(LocalDateTime.now());
+        AuditLog audit = new AuditLog();
+        audit.setTask(task);
+        audit.setUser(user);
+        audit.setAction(action);
+        audit.setFieldName(fieldName);
+        audit.setOldValue(oldValue);
+        audit.setNewValue(newValue);
+        audit.setChangedAt(LocalDateTime.now());
 
-        auditRepository.save(logEntity);
+        auditRepository.save(audit);
     }
 
 //Task Assign
@@ -193,13 +236,25 @@ public class TaskService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
                         new UserNotFoundException("User not found"));
+  // Capture old assigned user
+        String oldAssignedUser = task.getAssignedTo() != null
+                ? task.getAssignedTo().getUsername()
+                : null;
 
         task.setAssignedTo(user);
-        //task.setStatus(Status.IN_PROGRESS);
 
-        taskRepository.save(task);
+        Task updatedTask = taskRepository.save(task);
 
-        saveAudit("Task Assigned", user.getUsername());
+        // STEP 3: Audit (OLD → NEW)
+        saveAudit(
+                updatedTask,
+                currentUser,              // who performed action
+                "ASSIGN",                 // action type
+                "assignedTo",             // field changed
+                oldAssignedUser,          // old value
+                user.getUsername()     // new value
+        );
+
 
         return mapToResponse(task);
     }
@@ -224,12 +279,20 @@ public class TaskService {
                 currentUser.getRole() == Role.ADMIN)) {
             throw new RuntimeException("Not authorized to complete this task");
         }
-
+        //Capture OLD value
+        String oldStatus = task.getStatus().name();
         task.setStatus(Status.DONE);
 
-        taskRepository.save(task);
+        Task updatedTask = taskRepository.save(task);
 
-        saveAudit("Task Completed", "SYSTEM");
+        saveAudit(
+                updatedTask,
+                currentUser,
+                "UPDATE",
+                "status",
+                oldStatus,
+                Status.DONE.name()
+        );
 
         return mapToResponse(task);
     }
@@ -256,7 +319,18 @@ public class TaskService {
                 .description(task.getDescription())
                 .status(task.getStatus().name())
                 .priority(task.getPriority().name())
-                .assignedUser(assignedUser) // ✅ ADD THIS
+                .assignedUser(assignedUser) //
                 .build();
+    }
+
+    private void auditIfChanged(Task task,
+                                User user,
+                                String field,
+                                String oldVal,
+                                String newVal) {
+
+        if (!Objects.equals(oldVal, newVal)) {
+            saveAudit(task, user, "UPDATE", field, oldVal, newVal);
+        }
     }
 }

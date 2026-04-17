@@ -1,8 +1,6 @@
 package com.smarttask.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,13 +11,29 @@ import java.time.LocalDateTime;
 @Setter
 public class AuditLog {
 
-    @Id
-    @GeneratedValue
-    private Long id;
+        @Id
+        @GeneratedValue
+        private Long id;
 
-    private String action;
+        //  Link to Task
+        @ManyToOne
+        @JoinColumn(name = "task_id")
+        private Task task;
 
-    private String changedBy;
+        //  Link to User
+        @ManyToOne
+        @JoinColumn(name = "user_id")
+        private User user;
 
-    private LocalDateTime changedAt;
-}
+        // Action type
+        private String action; // CREATE, UPDATE, DELETE
+
+        // What field changed (optional but useful)
+        private String fieldName;
+
+        // Old & New values
+        private String oldValue;
+        private String newValue;
+
+        private LocalDateTime changedAt;
+    }
