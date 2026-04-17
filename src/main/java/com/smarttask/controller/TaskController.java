@@ -1,10 +1,12 @@
 package com.smarttask.controller;
 
+import com.smarttask.config.PaginationConfig;
 import com.smarttask.dto.TaskResponse;
 import com.smarttask.entity.Task;
 import com.smarttask.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,15 +20,23 @@ import java.util.List;
 public class TaskController {
 
     private final TaskService taskService;
+    private final PaginationConfig config;
 
     // ================= GET ALL TASKS =================
     @PreAuthorize("isAuthenticated()") //  Any logged-in user
     @GetMapping
-    public ResponseEntity<List<TaskResponse>> getAllTasks() {
-        log.info("Received request to fetch all tasks");
-        List<TaskResponse> tasks = taskService.getAllTasks();
-        log.info("Fetched {} tasks successfully", tasks.size());
-        return ResponseEntity.ok(tasks);
+    public Page<TaskResponse> getTasks(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String direction) {
+
+        return taskService.getAllTasks(
+                page != null ? page : config.getDefaultPage(),
+                size != null ? size : config.getDefaultSize(),
+                sortBy != null ? sortBy : config.getDefaultSort(),
+                direction != null ? direction : config.getDefaultDirection()
+        );
     }
 
     // ================= CREATE TASK =================

@@ -15,6 +15,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -35,6 +39,7 @@ public class TaskService {
 
     // ================= CREATE TASK =================
   //  @CacheEvict(value = "tasks", allEntries = true)
+
     public TaskResponse createTask(Task task) {
 
         log.info("Creating task");
@@ -119,27 +124,36 @@ public class TaskService {
 
     // ================= GET ALL TASKS =================
     //@Cacheable(value = "tasks")
-    public List<TaskResponse> getAllTasks() {
+    @Transactional(readOnly = true)
+    public Page<TaskResponse>  getAllTasks(int page, int size, String sortBy, String direction) {
 
-        log.info("Fetching all tasks");
+        log.info("Fetching all tasks with pagination");
+
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
 
         User currentUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        List<Task> tasks;
+        //  Sorting logic
+        Sort sort = direction.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
 
-        if (currentUser.getRole() == Role.USER){
-            //  Only assigned tasks
-            tasks = taskRepository.findByAssignedToId(currentUser.getId());
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Task> taskPage;
+
+        if (currentUser.getRole() == Role.USER) {
+            //  Only assigned tasks (paginated)
+            taskPage = taskRepository.findByAssignedToId(currentUser.getId(), pageable);
         } else {
-            // ADMIN / MANAGER
-            tasks = taskRepository.findAll();
+            //  ADMIN / MANAGER (all tasks paginated)
+            taskPage = taskRepository.findAll(pageable);
         }
-        return tasks.stream()
-                .map(this::mapToResponse)
-                .toList();
+
+        // Convert Entity → DTO
+        return taskPage.map(this::mapToResponse);
     }
 
     // ================= AUDIT =================

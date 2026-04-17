@@ -2,6 +2,8 @@ package com.smarttask.repository;
 
 import com.smarttask.entity.Task;
 import com.smarttask.enums.Status;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -19,5 +21,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     @Query("SELECT COUNT(t) FROM Task t WHERE t.dueDate < CURRENT_DATE")
     long countOverdueTasks();
 
-    List<Task> findByAssignedToId(Long id);
+    Page<Task> findByAssignedToId(Long userId, Pageable pageable);
+
+    List<Task> findByAssignedToId(Long userId);
 }
