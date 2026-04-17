@@ -8,6 +8,7 @@ import com.smarttask.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,6 +44,7 @@ public class UserService {
         return mapToResponse(user);
     }
 
+    @Cacheable(value = "tasks")
     public List<UserDto> getAllUsers() {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

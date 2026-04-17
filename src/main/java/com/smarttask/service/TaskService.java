@@ -38,7 +38,7 @@ public class TaskService {
     private final AuditRepository auditRepository;
 
     // ================= CREATE TASK =================
-  //  @CacheEvict(value = "tasks", allEntries = true)
+   @CacheEvict(value = "tasks", allEntries = true)
 
     public TaskResponse createTask(Task task) {
 
@@ -73,7 +73,7 @@ public class TaskService {
     }
     // ================= UPDATE TASK =================
     // WRITE OPERATION → INVALIDATE CACHE
-  //  @CacheEvict(value = "tasks", allEntries = true)
+    @CacheEvict(value = "tasks", allEntries = true)
     public TaskResponse updateTask(Long id, Task request) {
 
         log.info("Updating task with id={}", id);
@@ -123,7 +123,7 @@ public class TaskService {
     }
 
     // ================= GET ALL TASKS =================
-    //@Cacheable(value = "tasks")
+    @Cacheable(value = "tasks")
     @Transactional(readOnly = true)
     public Page<TaskResponse>  getAllTasks(int page, int size, String sortBy, String direction) {
 
@@ -170,7 +170,7 @@ public class TaskService {
     }
 
 //Task Assign
-    //@CacheEvict(value = "tasks", allEntries = true)
+    @CacheEvict(value = "tasks", allEntries = true)
     public TaskResponse assignTask(Long taskId, Long userId) {
 
         log.info("Assigning task {} to user {}", taskId, userId);
@@ -205,7 +205,7 @@ public class TaskService {
     }
 
     //=============CompleteTask=====
-    //@CacheEvict(value = "tasks", allEntries = true)
+    @CacheEvict(value = "tasks", allEntries = true)
     public TaskResponse completeTask(Long taskId) {
 
         log.info("Completing task {}", taskId);
